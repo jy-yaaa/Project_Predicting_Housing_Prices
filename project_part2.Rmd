@@ -118,10 +118,22 @@ summary(train_without_dummyNA)
 summary(train_imputed)
 ```
 
-Outlier detection and standardization.
+Outlier detection and standardization. (Not sure which dataset we need to use here...Shall we impute the missing data first or shall we deal with outliers first?) So I use the original dataset for now:)
 
 ```{r}
+# For "area" and "rooms", we can find that some observations with a very small area per room, implying that there might be measurement error in "area" and "rooms". Hence, we replace these outliers with NA.
+# summary(train_data$roomarea) 
+# summary(train_data$area) 
+# summary(train_data$rooms) 
+train_data$roomarea <- train_data$area/train_data$rooms
+train_data$area <- replace(train_data$area, train_data$roomarea < 5|train_data$roomarea > 200, NA)
+train_data$rooms <- replace(train_data$rooms, train_data$roomarea < 5|train_data$roomarea > 200, NA)
 
+# For "new_building", it contains too many missing value, we can remove this variable;
+# For "new_built" and "year_built", we can find some observations a bit confusing:(
+# Most apartments built after 2011 are defined as "new_built" (label 1 for variable "new_built"), but some observations built in the same year are labelled diffently in "new_built". Also, the value of "new_building" and "new_built" are not equal to each other all the time.
+# What if we create a new variable, "age"? We find that some are built in the future, 2021 or 2020...
+train_data$building_age <- 2020 - train_data$year_built
 
 ```
 
@@ -130,7 +142,7 @@ We will do further adjustments to our data.
 
 ```{r}
 
-# var format transformations
+# var format transformations (Do we need to transform data type before imputing missing data?)
 
 train_without_dummyNA$price <- as.integer(train_without_dummyNA$price) # price is a factor variable otherwise
 train_without_dummyNA$zipcode <- as.factor(train_without_dummyNA$zipcode) # zipcode should be factor - could even get more sophisticated (e.g. cantone...) with this one if time allows - the tax rate substantially differs across municipatlities in switzerland - that might well affect the prices of aparments
